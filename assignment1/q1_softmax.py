@@ -33,22 +33,22 @@ def softmax(x):
         ### YOUR CODE HERE
         cols, rows = x.shape
         for r in range(rows): 
-            row = x[row, 0:]
-            rmax = numpy.amax(row)
-            numpy.substract(row, numpy.full((1, cols), rmax), row) # row - max(row_i)
-            row = numpy.exp(row) # exp(row)
-            s = numpy.sum(row)
-            x[r] = py
+            row = x[r, 0:]
+            rmax = np.amax(row)
+            np.substract(row, np.full((1, cols), rmax), row) # row - max(row_i)
+            row = np.exp(row) # exp(row)
+            s = np.sum(row)
+            x[r] = s
         #raise NotImplementedError
         ### END YOUR CODE
     else:
         # Vector
         ### YOUR CODE HERE
-        row = x[row, 0:]
-        rmax = numpy.amax(row)
-        numpy.substract(row, numpy.full((1, cols), rmax), row) # row - max(row_i)
-        row = numpy.exp(row) # exp(row)
-        s = numpy.sum(row)
+        rmax = np.amax(x)
+        row = np.ones(5)
+        np.substract(x, np.full((1, x.size), rmax), row) # row - max(row_i)
+        row = np.exp(row) # exp(row)
+        s = np.sum(row)
         x[0] = py
         raise NotImplementedError
         ### END YOUR CODE
