@@ -40,7 +40,10 @@ def forward_backward_prop(X, labels, params, dimensions):
 
     # Note: compute cost based on `sum` not `mean`.
     ### YOUR CODE HERE: forward propagation
-    raise NotImplementedError
+    M = X.shape[0]
+    L1 = sigmoid(np.matmul(X, W1) + np.tile(b1, (M, 1)))
+    L2 = sigmoid(np.matmul(L1, W2) + np.tile(b2, (M, 1)))
+    #raise NotImplementedError
     ### END YOUR CODE
 
     ### YOUR CODE HERE: backward propagation

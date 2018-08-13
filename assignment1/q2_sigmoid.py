@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
+import math
 
 
 def sigmoid(x):
@@ -13,10 +14,11 @@ def sigmoid(x):
     Return:
     s -- sigmoid(x)
     """
-
-    ### YOUR CODE HERE
-    raise NotImplementedError
-    ### END YOUR CODE
+    if (len(x.shape) > 1):
+        s = np.exp(-x)
+        s = np.ones_like(s) / (np.ones_like(s) + s)
+    else:
+        s = 1 / (1 + math.exp(-x))
 
     return s
 
@@ -35,7 +37,8 @@ def sigmoid_grad(s):
     """
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    ds = s * (np.ones_like(s) - s)
+
     ### END YOUR CODE
 
     return ds
@@ -72,7 +75,7 @@ def test_sigmoid():
     """
     print "Running your tests..."
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #raise NotImplementedError
     ### END YOUR CODE
 
 

@@ -28,29 +28,29 @@ def softmax(x):
     """
     orig_shape = x.shape
 
+    x = x.astype(float)
+
     if len(x.shape) > 1:
         # Matrix
         ### YOUR CODE HERE
-        cols, rows = x.shape
+        rows, cols = x.shape
         for r in range(rows): 
-            row = x[r, 0:]
-            rmax = np.amax(row)
-            np.substract(row, np.full((1, cols), rmax), row) # row - max(row_i)
-            row = np.exp(row) # exp(row)
+            row = x[r]
+            rmax = np.ones_like(row)
+            rmax.fill(np.max(row))
+            row = np.exp(row - rmax) 
             s = np.sum(row)
-            x[r] = s
-        #raise NotImplementedError
+            x[r] = row / s
+        # raise NotImplementedError        
         ### END YOUR CODE
     else:
         # Vector
         ### YOUR CODE HERE
-        rmax = np.amax(x)
-        row = np.ones(5)
-        np.substract(x, np.full((1, x.size), rmax), row) # row - max(row_i)
-        row = np.exp(row) # exp(row)
+        rmax = np.ones_like(x)
+        rmax.fill(np.max(x))
+        row = np.exp(x - rmax) # exp (row - row_max)
         s = np.sum(row)
-        x[0] = py
-        raise NotImplementedError
+        x = row / s
         ### END YOUR CODE
 
     assert x.shape == orig_shape
@@ -92,7 +92,7 @@ def test_softmax():
     """
     print "Running your tests..."
     ### YOUR CODE HERE
-    raise NotImplementedError
+    # raise NotImplementedError
     ### END YOUR CODE
 
 
