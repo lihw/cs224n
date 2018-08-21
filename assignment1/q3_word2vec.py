@@ -14,9 +14,12 @@ def normalizeRows(x):
     unit length.
     """
 
-    ### YOUR CODE HERE
-    raise NotImplementedError
-    ### END YOUR CODE
+    row, col = x.shape
+    x2 = x * x
+    x3 = np.sqrt(np.sum(x2, 1))
+    for i in range(row):
+        x[i] /= x3[i]
+
 
     return x
 
@@ -56,10 +59,23 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     free to reference the code you previously wrote for this
     assignment!
     """
+    M, D = outputVectors.shape
+    normalizer = np.sum(np.exp(np.matmul(outputVectors, np.transpose(predicted))))
+    cost = -np.dot(outputVectors[target], predicted) + np.log(normalizer)
 
-    ### YOUR CODE HERE
-    raise NotImplementedError
-    ### END YOUR CODE
+    weights = np.exp(np.matmul(outputVectors, np.transpose(predicted)))
+    weightedOutputVectors = np.matmul(np.diag(weights), outputVectors)
+    gradPred = -outputVectors[target] + np.sum(weightedOutputVectors, 0) / normalizer 
+
+    grad = np.exp(np.matmul(outputVectors, np.transpose(predicted)))
+    grad = np.diag(grad)
+    grad = np.matmul(grad, outputVectors) / normalizer
+    # handle target output word vector
+    grad[target] -= predicted
+
+    print "gradPred.shape(%d), grad.shape(%d, %d)" % (gradPred.shape[0], \
+        grad.shape[0], grad.shape[1])
+
 
     return cost, gradPred, grad
 
@@ -96,7 +112,27 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     indices.extend(getNegativeSamples(target, dataset, K))
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    cost = -np.log(sigmoid(np.dot(predicted, outputVectors[target]))) 
+    for i in len(indices):
+        cost -= np.log(sigmoid(-np.dot(predicted, outputVectors[indices[i]])))
+    
+    uovc = np.dot(predicted, outputVectors[target])
+    gradPred = -1.0 / sigmoid(uovc) * sigmoid_grad(uovc) * outputVectors[target]
+    for i in len(indices):
+        ukvc = np.dot(predicted, outputVectors[indices[i]])
+        gradPred += 1.0 / sigmoid(-ukvc) * sigmoid_grad(-ukvc) * uk
+    
+    grad = np.zeros(outputVectors.shape)
+    for i in len(indices):
+        if indices[i] == target:
+            uovc = np.dot(predicted, outputVectors[target])
+            grad[indices[i]] = (-1.0 / sigmoid(uovc) * sigmoid_grad(uovc)) * predicted
+            ukvc = np.dot(predicted, outputVectors[indices[i]])
+            grad[indices[i]] += (1.0 / sigmoid(-ukvc) * sigmoid_grad(-ukvc)) * predicted
+        else:
+            ukvc = np.dot(predicted, outputVectors[indices[i]])
+            grad[indices[i]] += (1.0 / sigmoid(-ukvc) * sigmoid_grad(-ukvc)) * predicted
+
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -130,8 +166,22 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradIn = np.zeros(inputVectors.shape)
     gradOut = np.zeros(outputVectors.shape)
 
+    v = tokens[currentWord]
+    for i in range(len(contextWords)):
+        u = tokens[contextWords[i]]
+        target = u
+        predicted = inputVectors[v]
+        cost1, gradPred, grad = word2vecCostAndGradient(predicted, target, outputVectors, dataset)
+
+        cost += cost1
+        gradIn[v] += gradPred
+        gradOut += grad
+
+    print "cost: %f, gradPred.shape(%d), grad.shape(%d, %d)" % (cost, gradPred.shape[0], \
+        grad.shape[0], grad.shape[1])
+
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #raise NotImplementedError
     ### END YOUR CODE
 
     return cost, gradIn, gradOut
@@ -155,7 +205,7 @@ def cbow(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradOut = np.zeros(outputVectors.shape)
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #raise NotImplementedError
     ### END YOUR CODE
 
     return cost, gradIn, gradOut
@@ -170,7 +220,10 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
     batchsize = 50
     cost = 0.0
     grad = np.zeros(wordVectors.shape)
-    N = wordVectors.shape[0]
+    try: 
+        N = wordVectors.shape[0]
+    except IndexError:
+        print(cost)
     inputVectors = wordVectors[:N/2,:]
     outputVectors = wordVectors[N/2:,:]
     for i in xrange(batchsize):

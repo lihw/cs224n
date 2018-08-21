@@ -43,11 +43,25 @@ def forward_backward_prop(X, labels, params, dimensions):
     M = X.shape[0]
     L1 = sigmoid(np.matmul(X, W1) + np.tile(b1, (M, 1)))
     L2 = sigmoid(np.matmul(L1, W2) + np.tile(b2, (M, 1)))
+    CE = -np.log(L2) * labels
+    cost = np.sum(CE)
     #raise NotImplementedError
     ### END YOUR CODE
 
     ### YOUR CODE HERE: backward propagation
-    raise NotImplementedError
+    gradW2 = np.zeros(M, H, Dy)
+    gradb2 = np.zeros(M, H, Dy)
+    gradW1 = np.zeros(M, Dx, Dy)
+    gradW2 = np.zeros(M, Dx, Dy)
+
+    for i in range(M):
+        gradCE = -1 / np.sum(CE[i])
+        gradW2_i = gradCE * sigmoid_grad(L2[i]) * np.tile(np.transpose(L1[i]), (1, Dy)) # H x Dy
+        gradb2_i = gradCE * sigmoid_grad(L2[i])  # H x Dy
+        gradW1_i = np.matmul(gradW2_i, sigmoid_grad(L1[i]) * np.tile(np.transpose(X), (1, Dx))) # H x Dx
+        gradb1_i = np.matmul(gradb2_i, sigmoid_grad(L1[i])) # H x Dx
+
+    #raise NotImplementedError
     ### END YOUR CODE
 
     ### Stack gradients (do not modify)
