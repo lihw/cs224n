@@ -25,12 +25,8 @@ def softmax(x):
 
     ### YOUR CODE HERE
     exp_x = tf.exp(x) 
-    sum_exp_x = tf.reduce_sum(exp_x, axis = 1)
-    n_samples, n_features = tf.shape(x)
-    sum_exp_x1 = tf.Variable(sum_exp_x)
-    for i in range(n_features - 1):
-      sum_exp_x1 = tf.stack([sum_exp_x1, sum_exp_x], axis = 1)
-    out = tf.div(exp_x, sum_exp_x1)
+    sum_exp_x = tf.reduce_sum(exp_x, axis = 1, keepdims = True)
+    out = tf.div(exp_x, sum_exp_x)
     ### END YOUR CODE
 
     return out
@@ -61,10 +57,9 @@ def cross_entropy_loss(y, yhat):
     """
 
     ### YOUR CODE HERE
-    n_samples, n_classes = tf.shape(y)
     log_yhat = tf.log(yhat)
     y_float32= tf.to_float(y)
-    out = tf.negative(tf.reduce_sum(tf.mult(y_float32, log_yhat), axis = 1))
+    out = tf.negative(tf.reduce_sum(tf.multiply(y_float32, log_yhat)))
     ### END YOUR CODE
 
     return out
