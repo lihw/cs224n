@@ -34,23 +34,15 @@ def softmax(x):
         # Matrix
         ### YOUR CODE HERE
         rows, cols = x.shape
-        for r in range(rows): 
-            row = x[r]
-            rmax = np.ones_like(row)
-            rmax.fill(np.max(row))
-            row = np.exp(row - rmax) 
-            s = np.sum(row)
-            x[r] = row / s
-        # raise NotImplementedError        
-        ### END YOUR CODE
+        x_max = np.max(x, axis = 1, keepdims = True)
+        x = np.exp(x - x_max)
+        x = x / np.sum(x, axis = 1, keepdims = True)
     else:
         # Vector
         ### YOUR CODE HERE
-        rmax = np.ones_like(x)
-        rmax.fill(np.max(x))
-        row = np.exp(x - rmax) # exp (row - row_max)
-        s = np.sum(row)
-        x = row / s
+        x_max = np.max(x, keepdims = True)
+        x = np.exp(x - x_max) # exp (row - row_max)
+        x = x / np.sum(x, keepdims = True)
         ### END YOUR CODE
 
     assert x.shape == orig_shape
@@ -62,25 +54,25 @@ def test_softmax_basic():
     Some simple tests to get you started.
     Warning: these are not exhaustive.
     """
-    print "Running basic tests..."
+    print("Running basic tests...")
     test1 = softmax(np.array([1,2]))
-    print test1
+    print(test1)
     ans1 = np.array([0.26894142,  0.73105858])
     assert np.allclose(test1, ans1, rtol=1e-05, atol=1e-06)
 
     test2 = softmax(np.array([[1001,1002],[3,4]]))
-    print test2
+    print(test2)
     ans2 = np.array([
         [0.26894142, 0.73105858],
         [0.26894142, 0.73105858]])
     assert np.allclose(test2, ans2, rtol=1e-05, atol=1e-06)
 
     test3 = softmax(np.array([[-1001,-1002]]))
-    print test3
+    print(test3)
     ans3 = np.array([0.73105858, 0.26894142])
     assert np.allclose(test3, ans3, rtol=1e-05, atol=1e-06)
 
-    print "You should be able to verify these results by hand!\n"
+    print("You should be able to verify these results by hand!\n")
 
 
 def test_softmax():
@@ -90,7 +82,7 @@ def test_softmax():
     This function will not be called by the autograder, nor will
     your tests be graded.
     """
-    print "Running your tests..."
+    print("Running your tests...")
     ### YOUR CODE HERE
     # raise NotImplementedError
     ### END YOUR CODE

@@ -41,27 +41,27 @@ def forward_backward_prop(X, labels, params, dimensions):
     # Note: compute cost based on `sum` not `mean`.
     ### YOUR CODE HERE: forward propagation
     M = X.shape[0]
-    L1 = sigmoid(np.matmul(X, W1) + np.tile(b1, (M, 1)))
-    L2 = sigmoid(np.matmul(L1, W2) + np.tile(b2, (M, 1)))
+    L1 = sigmoid(np.matmul(X, W1) + b1) # b1 will be added to each row of XW1
+    L2 = sigmoid(np.matmul(L1, W2) + b2) # b2 will be added to each row of L1W2
     CE = -np.log(L2) * labels
     cost = np.sum(CE)
     #raise NotImplementedError
     ### END YOUR CODE
 
     ### YOUR CODE HERE: backward propagation
+    gradb2 = np.zeros(M, 1, Dy)
     gradW2 = np.zeros(M, H, Dy)
-    gradb2 = np.zeros(M, H, Dy)
-    gradW1 = np.zeros(M, Dx, Dy)
-    gradW2 = np.zeros(M, Dx, Dy)
+    gradb1 = np.zeros(M, 1, H)
+    gradW1 = np.zeros(M, Dx, H)
+
+    gradCE = -1 / np.sum(CE, axis = 1, keepdims = True)
 
     for i in range(M):
-        gradCE = -1 / np.sum(CE[i])
-        gradW2_i = gradCE * sigmoid_grad(L2[i]) * np.tile(np.transpose(L1[i]), (1, Dy)) # H x Dy
-        gradb2_i = gradCE * sigmoid_grad(L2[i])  # H x Dy
-        gradW1_i = np.matmul(gradW2_i, sigmoid_grad(L1[i]) * np.tile(np.transpose(X), (1, Dx))) # H x Dx
-        gradb1_i = np.matmul(gradb2_i, sigmoid_grad(L1[i])) # H x Dx
+        gradb2[i] = gradCE[i] * sigmoid_grad(L2[i])  # 1 x Dy
+        gradW2[i] = np.matmul(L1[i].T, gradb2[i]) # H x Dy
 
-    #raise NotImplementedError
+        gradb1[i] = np.matmul(gradb2[i], W2.T) * sigmoid_grad(L1[1]) # 1 x H
+        gradW1[i] = np.matmul(L2[i].T, gradb1[i]) # Dx x H
     ### END YOUR CODE
 
     ### Stack gradients (do not modify)
