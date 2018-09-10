@@ -40,28 +40,38 @@ def forward_backward_prop(X, labels, params, dimensions):
 
     # Note: compute cost based on `sum` not `mean`.
     ### YOUR CODE HERE: forward propagation
-    M = X.shape[0]
-    L1 = sigmoid(np.matmul(X, W1) + b1) # b1 will be added to each row of XW1
-    L2 = sigmoid(np.matmul(L1, W2) + b2) # b2 will be added to each row of L1W2
-    CE = -np.log(L2) * labels
+    z1 = np.matmul(X, W1) + b1
+    a1 = sigmoid(z1) # b1 will be added to each row of XW1
+    z2 = np.matmul(a1, W2) + b2
+    a2 = softmax(z2) # b2 will be added to each row of L1W2
+    CE = -np.log(a2) * labels
     cost = np.sum(CE)
     #raise NotImplementedError
     ### END YOUR CODE
 
     ### YOUR CODE HERE: backward propagation
-    gradb2 = np.zeros(M, 1, Dy)
-    gradW2 = np.zeros(M, H, Dy)
-    gradb1 = np.zeros(M, 1, H)
-    gradW1 = np.zeros(M, Dx, H)
+    gradb2 = np.zeros([1, Dy])
+    gradW2 = np.zeros([H, Dy])
+    gradb1 = np.zeros([1, H])
+    gradW1 = np.zeros([Dx, H])
 
-    gradCE = -1 / np.sum(CE, axis = 1, keepdims = True)
+    gradCE = a2 - labels
 
+    M = X.shape[0]
+        
     for i in range(M):
-        gradb2[i] = gradCE[i] * sigmoid_grad(L2[i])  # 1 x Dy
-        gradW2[i] = np.matmul(L1[i].T, gradb2[i]) # H x Dy
+        gradb2_i = gradCE[i] # 1 x Dy
+        gradb2 += gradb2_i
 
-        gradb1[i] = np.matmul(gradb2[i], W2.T) * sigmoid_grad(L1[1]) # 1 x H
-        gradW1[i] = np.matmul(L2[i].T, gradb1[i]) # Dx x H
+        gradW2_i = np.outer(a1[i], gradb2_i) # H x Dy
+        gradW2 += gradW2_i
+
+        gradb1_i = np.matmul(gradb2_i, W2.T) * sigmoid_grad(z1[i]) # 1 x H
+        gradb1 += gradb1_i
+
+        gradW1_i = np.outer(X[i], gradb1_i) # Dx x H
+        gradW1 += gradW1_i
+
     ### END YOUR CODE
 
     ### Stack gradients (do not modify)
@@ -76,13 +86,13 @@ def sanity_check():
     Set up fake data and parameters for the neural network, and test using
     gradcheck.
     """
-    print "Running sanity check..."
+    print("Running sanity check...")
 
     N = 20
     dimensions = [10, 5, 10]
     data = np.random.randn(N, dimensions[0])   # each row will be a datum
     labels = np.zeros((N, dimensions[2]))
-    for i in xrange(N):
+    for i in range(N):
         labels[i, random.randint(0,dimensions[2]-1)] = 1
 
     params = np.random.randn((dimensions[0] + 1) * dimensions[1] + (
@@ -99,9 +109,9 @@ def your_sanity_checks():
     This function will not be called by the autograder, nor will
     your additional tests be graded.
     """
-    print "Running your sanity checks..."
+    print("Running your sanity checks...")
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #raise NotImplementedError
     ### END YOUR CODE
 
 

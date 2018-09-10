@@ -37,8 +37,10 @@ def gradcheck_naive(f, x):
         # to test cost functions with built in randomness later.
 
         ### YOUR CODE HERE:
-        fx1, tmp1 = f(x[ix] + h) 
-        fx2, tmp2 = f(x[ix] - h) 
+        hh = np.zeros_like(x)
+        hh[ix] = h
+        fx1, tmp1 = f(x + hh) 
+        fx2, tmp2 = f(x - hh) 
         numgrad = (fx1 - fx2) / (2 * h)
         ### END YOUR CODE
 
