@@ -30,6 +30,7 @@ def forward_backward_prop(X, labels, params, dimensions):
     ofs = 0
     Dx, H, Dy = (dimensions[0], dimensions[1], dimensions[2])
 
+   
     W1 = np.reshape(params[ofs:ofs+ Dx * H], (Dx, H))
     ofs += Dx * H
     b1 = np.reshape(params[ofs:ofs + H], (1, H))
@@ -46,10 +47,10 @@ def forward_backward_prop(X, labels, params, dimensions):
     a2 = softmax(z2) # b2 will be added to each row of L1W2
     CE = -np.log(a2) * labels
     cost = np.sum(CE)
-    #raise NotImplementedError
-    ### END YOUR CODE
+    ##raise NotImplementedError
+    #### END YOUR CODE
 
-    ### YOUR CODE HERE: backward propagation
+    #### YOUR CODE HERE: backward propagation
     gradb2 = np.zeros([1, Dy])
     gradW2 = np.zeros([H, Dy])
     gradb1 = np.zeros([1, H])
@@ -66,13 +67,14 @@ def forward_backward_prop(X, labels, params, dimensions):
         gradW2_i = np.outer(a1[i], gradb2_i) # H x Dy
         gradW2 += gradW2_i
 
-        gradb1_i = np.matmul(gradb2_i, W2.T) * sigmoid_grad(z1[i]) # 1 x H
+        gradb1_i = np.matmul(gradb2_i, W2.T) * sigmoid_grad(a1[i]) # 1 x H
         gradb1 += gradb1_i
 
         gradW1_i = np.outer(X[i], gradb1_i) # Dx x H
         gradW1 += gradW1_i
 
     ### END YOUR CODE
+
 
     ### Stack gradients (do not modify)
     grad = np.concatenate((gradW1.flatten(), gradb1.flatten(),
