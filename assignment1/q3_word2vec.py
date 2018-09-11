@@ -2,6 +2,7 @@
 
 import numpy as np
 import random
+import math
 
 from q1_softmax import softmax
 from q2_gradcheck import gradcheck_naive
@@ -14,12 +15,11 @@ def normalizeRows(x):
     unit length.
     """
 
-    row, col = x.shape
+    ### YOUR CODE HERE
     x2 = x * x
-    x3 = np.sqrt(np.sum(x2, 1))
-    for i in range(row):
-        x[i] /= x3[i]
-
+    normalizer = np.sqrt(np.sum(x2, axis = 1, keepdims = True))
+    return x / normalizer
+    ### END YOUR CODE
 
     return x
 
@@ -59,23 +59,19 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     free to reference the code you previously wrote for this
     assignment!
     """
-    M, D = outputVectors.shape
-    normalizer = np.sum(np.exp(np.matmul(outputVectors, np.transpose(predicted))))
-    cost = -np.dot(outputVectors[target], predicted) + np.log(normalizer)
 
-    weights = np.exp(np.matmul(outputVectors, np.transpose(predicted)))
-    weightedOutputVectors = np.matmul(np.diag(weights), outputVectors)
-    gradPred = -outputVectors[target] + np.sum(weightedOutputVectors, 0) / normalizer 
+    ### YOUR CODE HERE
+    weights = np.exp(np.matmul(predicted, outputVectors.T))
+    normalizer = np.sum(weights)
+    cost = -math.log(weights[target] / normalizer) # cross entropy
 
-    grad = np.exp(np.matmul(outputVectors, np.transpose(predicted)))
-    grad = np.diag(grad)
-    grad = np.matmul(grad, outputVectors) / normalizer
-    # handle target output word vector
+    gradPred = -outputVectors[target]
+    gradPred += np.sum(np.matmul(np.diag(weights), outputVectors), axis = 0) / normalizer
+
+    grad = np.outer(weights / normalizer, predicted)
     grad[target] -= predicted
 
-    print "gradPred.shape(%d), grad.shape(%d, %d)" % (gradPred.shape[0], \
-        grad.shape[0], grad.shape[1])
-
+    ### END YOUR CODE
 
     return cost, gradPred, grad
 
@@ -112,26 +108,20 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     indices.extend(getNegativeSamples(target, dataset, K))
 
     ### YOUR CODE HERE
-    cost = -np.log(sigmoid(np.dot(predicted, outputVectors[target]))) 
-    for i in len(indices):
-        cost -= np.log(sigmoid(-np.dot(predicted, outputVectors[indices[i]])))
     
-    uovc = np.dot(predicted, outputVectors[target])
-    gradPred = -1.0 / sigmoid(uovc) * sigmoid_grad(uovc) * outputVectors[target]
-    for i in len(indices):
-        ukvc = np.dot(predicted, outputVectors[indices[i]])
-        gradPred += 1.0 / sigmoid(-ukvc) * sigmoid_grad(-ukvc) * uk
-    
-    grad = np.zeros(outputVectors.shape)
-    for i in len(indices):
-        if indices[i] == target:
-            uovc = np.dot(predicted, outputVectors[target])
-            grad[indices[i]] = (-1.0 / sigmoid(uovc) * sigmoid_grad(uovc)) * predicted
-            ukvc = np.dot(predicted, outputVectors[indices[i]])
-            grad[indices[i]] += (1.0 / sigmoid(-ukvc) * sigmoid_grad(-ukvc)) * predicted
-        else:
-            ukvc = np.dot(predicted, outputVectors[indices[i]])
-            grad[indices[i]] += (1.0 / sigmoid(-ukvc) * sigmoid_grad(-ukvc)) * predicted
+    vc_uo = np.dot(predicted, outputVectors[target])
+    vc_uk = np.matmul(predicted, outputVectors[indices[1:]].T)
+
+    sigmoid_vc_uo = sigmoid(vc_uo)
+    sigmoid_vc_uk = sigmoid(-vc_uk)
+    cost = -math.log(sigmoid_vc_uo) - np.sum(np.log(sigmoid_vc_uk))
+
+    gradPred = ((sigmoid_vc_uo) - 1) * outputVectors[target]
+    gradPred += np.sum(np.matmul(np.diag(np.ones_like(sigmoid_vc_uk) - sigmoid_vc_uk), outputVectors[indices[1:]]), axis = 0)
+
+    grad[indices[1:]] = np.diag(np.ones_like(sigmoid_vc_uk) - sigmoid_vc_uk), predicted)
+    grad[target] += ((sigmoid_vc_uo) - 1) * predicted
+
 
     ### END YOUR CODE
 
@@ -166,22 +156,14 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradIn = np.zeros(inputVectors.shape)
     gradOut = np.zeros(outputVectors.shape)
 
-    v = tokens[currentWord]
-    for i in range(len(contextWords)):
-        u = tokens[contextWords[i]]
-        target = u
-        predicted = inputVectors[v]
-        cost1, gradPred, grad = word2vecCostAndGradient(predicted, target, outputVectors, dataset)
-
-        cost += cost1
-        gradIn[v] += gradPred
-        gradOut += grad
-
-    print "cost: %f, gradPred.shape(%d), grad.shape(%d, %d)" % (cost, gradPred.shape[0], \
-        grad.shape[0], grad.shape[1])
-
     ### YOUR CODE HERE
-    #raise NotImplementedError
+    predicted = inputVectors[tokens[currentWord]]
+    for c in range(2 * C + 1)
+      target = tokens[contextWords[c]]
+      cost1, gradPred1, grad1 = word2vecCostAndGradient(predicted, target, outputVectors, dataset)
+      cost += cost1
+      gradOut += grad1
+      gradIn += gradPred1
     ### END YOUR CODE
 
     return cost, gradIn, gradOut
@@ -205,7 +187,7 @@ def cbow(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradOut = np.zeros(outputVectors.shape)
 
     ### YOUR CODE HERE
-    #raise NotImplementedError
+    raise NotImplementedError
     ### END YOUR CODE
 
     return cost, gradIn, gradOut
@@ -220,10 +202,7 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
     batchsize = 50
     cost = 0.0
     grad = np.zeros(wordVectors.shape)
-    try: 
-        N = wordVectors.shape[0]
-    except IndexError:
-        print(cost)
+    N = wordVectors.shape[0]
     inputVectors = wordVectors[:N/2,:]
     outputVectors = wordVectors[N/2:,:]
     for i in xrange(batchsize):
