@@ -14,7 +14,11 @@ def sigmoid(x):
     Return:
     s -- sigmoid(x)
     """
-    s = 1 / (1 + np.exp(-x))
+    if (len(x.shape) >= 1):
+        s = np.exp(-x)
+        s = 1 / (1 + s)
+    else:
+        s = 1 / (1 + math.exp(-x))
 
     return s
 
