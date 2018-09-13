@@ -51,10 +51,9 @@ def getSentenceFeatures(tokens, wordVectors, sentence):
     sentVector = np.zeros((wordVectors.shape[1],))
 
     ### YOUR CODE HERE
-    for i in range(len(sentence)):
-        v = tokens[sentence[i]]
-        sentVector += wordVectors[v]
-    sentVector *= i / len(sentence)
+    v = [tokens[w] for w in sentence]
+    vectors = wordVectors[v]
+    np.average(vectors, axis = 0)
     ### END YOUR CODE
 
     assert sentVector.shape == (wordVectors.shape[1],)
@@ -93,13 +92,14 @@ def chooseBestModel(results):
     Returns:
     Your chosen result dictionary.
     """
+
+    ### YOUR CODE HERE
     bestDevPerf = 0
     for result in results:
         if result["dev"] > bestDevPerf:
             bestDevPerf = result["dev"]
             bestResult = result
-
-    ### YOUR CODE HERE
+    
     #raise NotImplementedError
     ### END YOUR CODE
 
@@ -203,7 +203,7 @@ def main(args):
     results = []
     regValues = getRegularizationValues()
     for reg in regValues:
-        print "Training for reg=%f" % reg
+        print("Training for reg=%f" % reg)
         # Note: add a very small number to regularization to please the library
         clf = LogisticRegression(C=1.0/(reg + 1e-12))
         clf.fit(trainFeatures, trainLabels)
@@ -211,19 +211,19 @@ def main(args):
         # Test on train set
         pred = clf.predict(trainFeatures)
         trainAccuracy = accuracy(trainLabels, pred)
-        print "Train accuracy (%%): %f" % trainAccuracy
+        print("Train accuracy (%%): %f" % trainAccuracy)
 
         # Test on dev set
         pred = clf.predict(devFeatures)
         devAccuracy = accuracy(devLabels, pred)
-        print "Dev accuracy (%%): %f" % devAccuracy
+        print("Dev accuracy (%%): %f" % devAccuracy)
 
         # Test on test set
         # Note: always running on test is poor style. Typically, you should
         # do this only after validation.
         pred = clf.predict(testFeatures)
         testAccuracy = accuracy(testLabels, pred)
-        print "Test accuracy (%%): %f" % testAccuracy
+        print("Test accuracy (%%): %f" % testAccuracy)
 
         results.append({
             "reg": reg,
@@ -233,20 +233,20 @@ def main(args):
             "test": testAccuracy})
 
     # Print the accuracies
-    print ""
-    print "=== Recap ==="
-    print "Reg\t\tTrain\tDev\tTest"
+    print("")
+    print("=== Recap ===")
+    print("Reg\t\tTrain\tDev\tTest")
     for result in results:
-        print "%.2E\t%.3f\t%.3f\t%.3f" % (
+        print("%.2E\t%.3f\t%.3f\t%.3f" % (
             result["reg"],
             result["train"],
             result["dev"],
-            result["test"])
-    print ""
+            result["test"]))
+    print("")
 
     bestResult = chooseBestModel(results)
-    print "Best regularization value: %0.2E" % bestResult["reg"]
-    print "Test accuracy (%%): %f" % bestResult["test"]
+    print("Best regularization value: %0.2E" % bestResult["reg"])
+    print("Test accuracy (%%): %f" % bestResult["test"])
 
     # do some error analysis
     if args.pretrained:
