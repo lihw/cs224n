@@ -24,7 +24,8 @@ class PartialParse(object):
         self.stack = list()
         self.stack.append('ROOT')
 
-        self.stack = buffer()
+        self.buffer = [w for w in sentence]
+
 
         self.dependencies = list() # (head, dependent)
         ### END YOUR CODE
@@ -38,6 +39,21 @@ class PartialParse(object):
                         transition.
         """
         ### YOUR CODE HERE
+        if transition == 'S':
+            self.stack.append(self.buffer[0])
+            self.buffer.pop(0)
+        if transition == 'LA':
+            head = self.stack[-1]
+            dependent = self.stack[-2]
+            self.dependencies.append((head, dependent))
+            self.stack = self.stack[:-2]
+            self.stack.append(head)
+        if transition == 'RA':
+            head = self.stack[-2]
+            dependent = self.stack[-1]
+            self.dependencies.append((head, dependent))
+            self.stack.pop()
+            
         ### END YOUR CODE
 
     def parse(self, transitions):
@@ -72,6 +88,25 @@ def minibatch_parse(sentences, model, batch_size):
     """
 
     ### YOUR CODE HERE
+    partial_parses = [PartialParse(sent) for sent in sentences]
+
+    unfinished_partial_parses = list(partial_parses)
+
+    while len(unfinished_partial_parses) > 0:
+        minibatches = unfinished_partial_parses[:batch_size]
+
+        transitions = model.predict(minibatches)
+
+        for i in range(len(minibatches)):
+            transition = transitions[i]
+            pp = minibatches[i]
+
+            pp.parse_step(transition)
+            if len(pp.stack) == 1 and len(pp.buffer) == 0:
+                unfinished_partial_parses.remove(pp)
+    
+    dependencies = [pp.dependencies for pp in partial_parses]  
+
     ### END YOUR CODE
 
     return dependencies
@@ -91,7 +126,7 @@ def test_step(name, transition, stack, buf, deps,
         "{:} test resulted in buffer {:}, expected {:}".format(name, buf, ex_buf)
     assert deps == ex_deps, \
         "{:} test resulted in dependency list {:}, expected {:}".format(name, deps, ex_deps)
-    print "{:} test passed!".format(name)
+    print("{:} test passed!".format(name))
 
 
 def test_parse_step():
@@ -118,7 +153,7 @@ def test_parse():
         "parse test resulted in dependencies {:}, expected {:}".format(dependencies, expected)
     assert tuple(sentence) == ("parse", "this", "sentence"), \
         "parse test failed: the input sentence should not be modified"
-    print "parse test passed!"
+    print("parse test passed!")
 
 
 class DummyModel(object):
@@ -155,7 +190,7 @@ def test_minibatch_parse():
                       (('only', 'ROOT'), ('only', 'arcs'), ('only', 'left')))
     test_dependencies("minibatch_parse", deps[3],
                       (('again', 'ROOT'), ('again', 'arcs'), ('again', 'left'), ('again', 'only')))
-    print "minibatch_parse test passed!"
+    print("minibatch_parse test passed!")
 
 if __name__ == '__main__':
     test_parse_step()

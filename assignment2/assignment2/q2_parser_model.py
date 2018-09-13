@@ -54,6 +54,13 @@ class ParserModel(Model):
         (Don't change the variable names)
         """
         ### YOUR CODE HERE
+        self.input_placeholder = tf.placeholder(dtype = tf.float32, 
+                shape = (None, self.config.n_features), name = "input")
+        self.lables_placeholder = tf.placeholder(dtype = tf.float32, 
+                shape = (None, self.config.n_classes), name = "labels")
+        self.dropout_placeholder = tf.placeholder(dtype = tf.float32, 
+                shape = (), name = "dropout")
+        
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, labels_batch=None, dropout=0):
@@ -79,6 +86,11 @@ class ParserModel(Model):
             feed_dict: The feed dictionary mapping from placeholders to values.
         """
         ### YOUR CODE HERE
+        free_dict = { \
+            input_placeholder: inputs_batch, \
+            labels_placeholder = labels_batch, \
+            dropout_placeholder: dropout \
+        }
         ### END YOUR CODE
         return feed_dict
 
